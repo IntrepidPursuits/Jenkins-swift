@@ -9,6 +9,7 @@
 import Foundation
 
 typealias JSON = [String: AnyObject]
+private let ApiClientTimeout: TimeInterval = 30
 
 internal enum APIError: Error {
     case InvalidHost
@@ -57,8 +58,8 @@ internal final class APIClient {
         self.baseURL = url
     }
     
-    func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], handler: (AnyObject?) -> (Void)) {
-        let request: URLRequest = requestFor(path, method: .GET, headers: headers, params: params)
+    func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], _ handler: (AnyObject?) -> (Void)) {
+        let request: URLRequest = requestFor(path, method: .GET, headers: headers, params: params, body: nil)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else {
                 handler(nil)
@@ -80,8 +81,9 @@ internal final class APIClient {
         task.resume()
     }
     
-    func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], handler: (AnyObject?) -> Void) {
-        let request: URLRequest = requestFor(path, method: .POST, headers: headers, params: params)
+    func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: String? = nil, _ handler: (AnyObject?) -> Void) {
+        let bodyData: Data? = body?.data(using: String.Encoding.utf8)
+        let request: URLRequest = requestFor(path, method: .POST, headers: headers, params: params, body: bodyData)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else {
                 handler(nil)
@@ -103,23 +105,28 @@ internal final class APIClient {
         task.resume()
     }
     
-    private func requestFor(_ url: URL, method: APIMethod, headers: [String : String] = [:], params: [String : AnyObject] = [ : ]) -> URLRequest {
-        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 30)
+    private func requestFor(_ url: URL, method: APIMethod, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: Data?) -> URLRequest {
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: ApiClientTimeout)
         request.httpMethod = method.description
         
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        let queryItems: [URLQueryItem] = params.map {
-            if let val = $0.value as? String {
-                return URLQueryItem(name: $0.key, value: val)
-            } else {
-                return URLQueryItem(name: $0.key, value: String($0.value))
+        _ = headers.map { request.addValue($0.value, forHTTPHeaderField: $0.key) }
+        
+        if let body = body {
+            request.httpBody = body
+        } else {
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            let queryItems: [URLQueryItem] = params.map {
+                if let val = $0.value as? String {
+                    return URLQueryItem(name: $0.key, value: val)
+                } else {
+                    return URLQueryItem(name: $0.key, value: String($0.value))
+                }
             }
+            
+            components?.queryItems = queryItems
+            request.httpBody = components?.percentEncodedQuery?.data(using: String.Encoding.utf8)
         }
         
-        components?.queryItems = queryItems
-        
-        _ = headers.map { request.addValue($0.value, forHTTPHeaderField: $0.key) }
-        request.httpBody = components?.percentEncodedQuery?.data(using: String.Encoding.utf8)
         return request
     }
     

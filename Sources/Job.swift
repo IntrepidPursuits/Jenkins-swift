@@ -110,14 +110,14 @@ public extension Jenkins {
             return
         }
         
-        client?.get(path: url, handler: { obj in
+        client?.get(path: url) { obj in
             guard let json = obj as? JSON else {
                 handler(job: nil)
                 return
             }
             
             handler(job: Job(json: json))
-        })
+        }
     }
     
     func fetch(_ job: Job, handler: (job: Job?) -> Void) {
@@ -140,9 +140,9 @@ public extension Jenkins {
                 return
         }
         
-        client?.post(path: url, handler: { response in
+        client?.post(path: url) { response in
             handler(error: (response == nil))
-        })
+        }
     }
     
     func disable(_ job: Job, handler: (error: Bool) -> Void) {
@@ -157,9 +157,9 @@ public extension Jenkins {
                 return
         }
         
-        client?.post(path: url, handler: { response in
+        client?.post(path: url) { response in
             handler(error: (response == nil))
-        })
+        }
     }
 }
 
@@ -175,9 +175,9 @@ public extension Jenkins {
                 return
         }
         
-        client?.post(path: url, params: parameters, handler: { response in
+        client?.post(path: url, params: parameters) { response in
             handler(error: (response == nil))
-        })
+        }
     }
     
     func build(_ job: Job, parameters: [String : String], handler: (error: Bool) -> Void) {

@@ -29,13 +29,13 @@ public extension Jenkins {
     }
     
     func fetchJobConfiguration(url: URL, handler: (response: String?, error: Bool) -> Void) {
-        client?.get(path: url, rawResponse: true, handler: { xml in
+        client?.get(path: url, rawResponse: true) { xml in
             if let xml = xml as? String {
                 handler(response: xml, error: false)
             }
             
             handler(response: nil, error: true)
-        })
+        }
     }
 }
 
@@ -54,9 +54,9 @@ public extension Jenkins {
                 return
         }
         
-        client?.post(path: url, body: configuration, handler: { response in
+        client?.post(path: url, body: configuration) { response in
             handler(error: (response == nil))
-        })
+        }
     }
     
     func update(_ job: Job, description: String, handler: (error: Bool) -> Void) {
@@ -71,9 +71,9 @@ public extension Jenkins {
                 return
         }
         
-        client?.post(path: url, data: ["description" : description], handler: { response in
+        client?.post(path: url, params: ["description" : description]) { response in
             handler(error: (response == nil))
-        })
+        }
     }
     
     func update(_ job: Job, configuration: JobConfiguration, handler: (error: Bool) -> Void) {
@@ -88,9 +88,9 @@ public extension Jenkins {
                 return
         }
         
-        client?.post(path: url, body: configuration, handler: { response in
+        client?.post(path: url, body: configuration) { response in
             handler(error: (response == nil))
-        })
+        }
     }
     
     func delete(_ job: Job, handler: (error: Bool) -> Void) {
@@ -105,9 +105,9 @@ public extension Jenkins {
                 return
         }
         
-        client?.post(path: url, handler: { response in
+        client?.post(path: url) { response in
             handler(error: (response == nil))
-        })
+        }
     }
 
 }
