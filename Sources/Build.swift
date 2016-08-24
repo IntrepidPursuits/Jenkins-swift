@@ -14,7 +14,7 @@ public enum BuildResult {
     case Aborted
     case Unknown
     
-    init(type: String?) {
+    private init(type: String?) {
         guard let type = type else {
             self = .Unknown
             return
@@ -49,6 +49,25 @@ public struct Build {
     private(set) var url: String = ""
     
     init(json: JSON) {
-        self.identifier = Int(json["id"] as! String) ?? 0
+        guard let identifier = Int(json["id"] as! String) else {
+            self.identifier = 0
+            return
+        }
+        
+        self.identifier = identifier
+        self.buildNumber = json["number"] as? Int ?? 0
+        self.buildDescription = json["description"] as? String ?? ""
+        self.displayName = json["displayName"] as? String ?? ""
+        self.duration = json["duration"] as? Int ?? 0
+        self.estimatedDuration = json["estimatedDuration"] as? Int ?? 0
+        self.executor = json["executor"] as? String ?? ""
+        self.fullDisplayName = json["fullDisplayName"] as? String ?? ""
+        self.keepLog = json["keepLog"] as? Bool ?? false
+        self.queueIdentifier = json["queueId"] as? Int ?? 0
+        
+        let buildResult = json["result"] as? String ?? ""
+        self.result = BuildResult(type: buildResult)
+        self.timestamp = json["timestamp"] as? Int ?? 0
+        self.url = json["url"] as? String ?? ""
     }
 }

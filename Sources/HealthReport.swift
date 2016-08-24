@@ -9,9 +9,9 @@
 import Foundation
 
 public struct HealthReport {
-    var report: String
-    var iconClassName: String
-    var score: Int
+    private(set) var report: String
+    private(set) var iconClassName: String
+    private(set) var score: Int
     
     init(json: JSON) {
         self.report = json["description"] as? String ?? ""
