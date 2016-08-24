@@ -104,7 +104,7 @@ extension Job : CustomStringConvertible {
 // MARK: Job
 
 public extension Jenkins {
-    func fetch(_ job: String, handler: (job: Job?) -> Void) {
+    func fetch(_ job: String, _ handler: (job: Job?) -> Void) {
         guard let url = URL(string: baseURL)?.appendingPathComponent(job) else {
             handler(job: nil)
             return
@@ -120,19 +120,19 @@ public extension Jenkins {
         }
     }
     
-    func fetch(_ job: Job, handler: (job: Job?) -> Void) {
-        return fetch(job.name, handler: handler)
+    func fetch(_ job: Job, _ handler: (job: Job?) -> Void) {
+        return fetch(job.name, handler)
     }
 }
 
 // MARK: Enabling and Disabling Jobs
 
 public extension Jenkins {
-    func enable(_ job: Job, handler: (error: Bool) -> Void) {
-        enable(job: job.name, handler: handler)
+    func enable(_ job: Job, _ handler: (error: Bool) -> Void) {
+        enable(job: job.name, handler)
     }
     
-    func enable(job named: String, handler: (error: Bool) -> Void) {
+    func enable(job named: String, _ handler: (error: Bool) -> Void) {
         guard let url = URL(string: baseURL)?
             .appendingPathComponent(named)
             .appendingPathComponent("enable") else {
@@ -145,11 +145,11 @@ public extension Jenkins {
         }
     }
     
-    func disable(_ job: Job, handler: (error: Bool) -> Void) {
-        disable(job: job.name, handler: handler)
+    func disable(_ job: Job, _ handler: (error: Bool) -> Void) {
+        disable(job: job.name, handler)
     }
     
-    func disable(job named: String, handler: (error: Bool) -> Void) {
+    func disable(job named: String, _ handler: (error: Bool) -> Void) {
         guard let url = URL(string: baseURL)?
             .appendingPathComponent(named)
             .appendingPathComponent("disable") else {
@@ -166,7 +166,7 @@ public extension Jenkins {
 // MARK: Build Jobs
 
 public extension Jenkins {
-    func build(_ name: String, parameters: [String : String], handler: (error: Bool) -> Void) {
+    func build(_ name: String, parameters: [String : String], _ handler: (error: Bool) -> Void) {
         let buildPath = (parameters.count > 0) ? "buildWithParameters" : "build"
         guard let url = URL(string: baseURL)?
             .appendingPathComponent(name)
@@ -180,7 +180,7 @@ public extension Jenkins {
         }
     }
     
-    func build(_ job: Job, parameters: [String : String], handler: (error: Bool) -> Void) {
-        build(job.name, parameters: parameters, handler: handler)
+    func build(_ job: Job, parameters: [String : String], _ handler: (error: Bool) -> Void) {
+        build(job.name, parameters: parameters, handler)
     }
 }
