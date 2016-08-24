@@ -101,7 +101,86 @@ extension Job : CustomStringConvertible {
     }
 }
 
-    
+// MARK: Job
+
+public extension Jenkins {
+    func fetch(_ job: String, handler: (job: Job?) -> Void) {
+        guard let url = URL(string: baseURL)?.appendingPathComponent(job) else {
+            handler(job: nil)
+            return
+        }
         
+        client?.get(path: url, handler: { obj in
+            guard let json = obj as? JSON else {
+                handler(job: nil)
+                return
+            }
+            
+            handler(job: Job(json: json))
+        })
+    }
+    
+    func fetch(_ job: Job, handler: (job: Job?) -> Void) {
+        return fetch(job.name, handler: handler)
+    }
+}
+
+// MARK: Enabling and Disabling Jobs
+
+public extension Jenkins {
+    func enable(_ job: Job, handler: (error: Bool) -> Void) {
+        enable(job: job.name, handler: handler)
+    }
+    
+    func enable(job named: String, handler: (error: Bool) -> Void) {
+        guard let url = URL(string: baseURL)?
+            .appendingPathComponent(named)
+            .appendingPathComponent("enable") else {
+                handler(error: true)
+                return
+        }
+        
+        client?.post(path: url, handler: { response in
+            handler(error: (response == nil))
+        })
+    }
+    
+    func disable(_ job: Job, handler: (error: Bool) -> Void) {
+        disable(job: job.name, handler: handler)
+    }
+    
+    func disable(job named: String, handler: (error: Bool) -> Void) {
+        guard let url = URL(string: baseURL)?
+            .appendingPathComponent(named)
+            .appendingPathComponent("disable") else {
+                handler(error: true)
+                return
+        }
+        
+        client?.post(path: url, handler: { response in
+            handler(error: (response == nil))
+        })
+    }
+}
+
+// MARK: Build Jobs
+
+public extension Jenkins {
+    func build(_ name: String, parameters: [String : String], handler: (error: Bool) -> Void) {
+        let buildPath = (parameters.count > 0) ? "buildWithParameters" : "build"
+        guard let url = URL(string: baseURL)?
+            .appendingPathComponent(name)
+            .appendingPathComponent(buildPath) else {
+                handler(error: true)
+                return
+        }
+        
+        client?.post(path: url, params: parameters, handler: { response in
+            handler(error: (response == nil))
+        })
+    }
+    
+    func build(_ job: Job, parameters: [String : String], handler: (error: Bool) -> Void) {
+        build(job.name, parameters: parameters, handler: handler)
     }
 }
