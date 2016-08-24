@@ -104,8 +104,29 @@ extension Job : CustomStringConvertible {
 // MARK: Job
 
 public extension Jenkins {
+    func fetchJobs(_ handler: ([Job]) -> Void) {
+        guard let url = URL(string: jenkinsURL) else {
+            handler([])
+            return
+        }
+        
+        client?.get(path: url) { obj in
+            guard let json = obj as? JSON,
+                let jobsJSON = json["jobs"] as? [JSON] else {
+                    handler([])
+                    return
+            }
+            
+            let jobs = jobsJSON.map { json in
+                return Job(json: json)
+            }
+            
+            handler(jobs)
+        }
+    }
+    
     func fetch(_ job: String, _ handler: (job: Job?) -> Void) {
-        guard let url = URL(string: baseURL)?.appendingPathComponent(job) else {
+        guard let url = URL(string: jobURL)?.appendingPathComponent(job) else {
             handler(job: nil)
             return
         }
@@ -133,7 +154,7 @@ public extension Jenkins {
     }
     
     func enable(job named: String, _ handler: (error: Bool) -> Void) {
-        guard let url = URL(string: baseURL)?
+        guard let url = URL(string: jobURL)?
             .appendingPathComponent(named)
             .appendingPathComponent("enable") else {
                 handler(error: true)
@@ -150,7 +171,7 @@ public extension Jenkins {
     }
     
     func disable(job named: String, _ handler: (error: Bool) -> Void) {
-        guard let url = URL(string: baseURL)?
+        guard let url = URL(string: jobURL)?
             .appendingPathComponent(named)
             .appendingPathComponent("disable") else {
                 handler(error: true)
@@ -168,7 +189,7 @@ public extension Jenkins {
 public extension Jenkins {
     func build(_ name: String, parameters: [String : String], _ handler: (error: Bool) -> Void) {
         let buildPath = (parameters.count > 0) ? "buildWithParameters" : "build"
-        guard let url = URL(string: baseURL)?
+        guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent(buildPath) else {
                 handler(error: true)

@@ -18,7 +18,7 @@ public extension Jenkins {
     }
     
     func fetchJobConfiguration(_ name: String, _ handler: (response: String?, error: Bool) -> Void) {
-        guard let url = URL(string: baseURL)?
+        guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent("config.xml") else {
                 handler(response: nil, error: true)
@@ -47,7 +47,7 @@ public extension Jenkins {
     }
     
     func create(_ name: String, configuration: JobConfiguration, _ handler: (error: Bool) -> Void) {
-        guard let url = URL(string: baseURL)?
+        guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent("createItem") else {
                 handler(error: true)
@@ -64,7 +64,7 @@ public extension Jenkins {
     }
     
     func update(_ name: String, description: String, _ handler: (error: Bool) -> Void) {
-        guard let url = URL(string: baseURL)?
+        guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent("description") else {
                 handler(error: true)
@@ -81,7 +81,7 @@ public extension Jenkins {
     }
     
     func update(_ name: String, configuration: JobConfiguration, _ handler: (error: Bool) -> Void) {
-        guard let url = URL(string: baseURL)?
+        guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent("config.xml") else {
                 handler(error: true)
@@ -98,7 +98,7 @@ public extension Jenkins {
     }
     
     func delete(_ name: String, _ handler: (error: Bool) -> Void) {
-        guard let url = URL(string: baseURL)?
+        guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent("doDelete") else {
                 handler(error: true)

@@ -39,20 +39,27 @@ public final class Jenkins {
     private(set) var jobs: [Job] = []
     private(set) var client: APIClient?
     
-    var baseURL: String {
+    var jenkinsURL: String {
         guard let url = self.client?.baseURL else {
             return ""
         }
         return url.absoluteString
     }
+    
+    var jobURL: String {
+        guard let url = self.client?.baseURL,
+            let path = self.client?.path else {
+                return ""
+        }
+        return url.appendingPathComponent(path).absoluteString
+    }
 
-    public init(host: String, port: Int, user: String, token: String, transport: Transport = .HTTP) throws {
+    public init(host: String, port: Int, user: String, token: String, path: String, transport: Transport = .HTTP) throws {
         do {
-            self.client = try APIClient(host: host, port: port, user: user, token: token)
+            self.client = try APIClient(host: host, port: port, path: path, user: user, token: token)
         } catch let error as APIError {
             throw JenkinsError(error: error)
         }
-
     }
 }
 

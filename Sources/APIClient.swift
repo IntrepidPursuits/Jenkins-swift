@@ -33,7 +33,7 @@ internal enum APIMethod: String, CustomStringConvertible {
 
 internal final class APIClient {
     private(set) var host: String
-    private(set) var path: String?
+    private(set) var path: String
     private(set) var port: Int
     private(set) var user: String
     private(set) var token: String
@@ -44,7 +44,7 @@ internal final class APIClient {
         return (self.user, self.token)
     }
     
-    init(host: String, port: Int, path: String? = "", user: String, token: String, transport: String = "http") throws {
+    init(host: String, port: Int, path: String = "", user: String, token: String, transport: String = "http") throws {
         self.host = host
         self.path = path
         self.port = port
@@ -52,9 +52,11 @@ internal final class APIClient {
         self.token = token
         self.transport = transport
         
-        guard let url = URL(string:"\(self.transport)://\(self.host):\(self.port)/\(self.path)") else {
+        let urlString = "\(self.transport)://\(self.host):\(self.port)/"
+        guard let url = URL(string: urlString) else {
             throw APIError.InvalidHost
         }
+        
         self.baseURL = url
     }
     
@@ -130,32 +132,4 @@ internal final class APIClient {
         return request
     }
     
-}
-
-extension APIClient {
-    func apiURLByAppendingPath(_ path: String?) -> String {
-        guard let path = path else {
-            return baseURL.appendingPathComponent("api")
-                .appendingPathComponent("json")
-                .absoluteString
-        }
-        
-        let fixedPath = (path.contains(baseURL.absoluteString))
-            ? path.stringByReplacingFirstOccurrenceOfString(baseURL.absoluteString, withString: "")
-            : path
-        
-        return baseURL.appendingPathComponent(fixedPath)
-            .appendingPathComponent("api")
-            .appendingPathComponent("json")
-            .absoluteString
-    }
-}
-
-private extension String {
-    func stringByReplacingFirstOccurrenceOfString(_ target: String, withString replaceString: String) -> String {
-        if let range = self.range(of: target){
-            return self.replacingCharacters(in: range, with: replaceString)
-        }
-        return self
-    }
 }
