@@ -66,16 +66,16 @@ internal final class APIClient {
         self.baseURL = url
     }
     
-    func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], _ handler: (response: AnyObject?, error: Error?) -> Void) {
+    func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], _ handler: (AnyObject?, Error?) -> Void) {
         let request: URLRequest = requestFor(path, method: .GET, headers: headers, params: params, body: nil)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else {
-                handler(response: nil, error: error)
+                handler(nil, error)
                 return
             }
             
             if let _ = error {
-                handler(response: nil, error: error)
+                handler(nil, error)
                 return
             }
             
@@ -83,23 +83,23 @@ internal final class APIClient {
                 ? String(data: data, encoding: String.Encoding.utf8)
                 : try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
             
-            handler(response: retVal, error: nil)
+            handler(retVal, nil)
         }
         
         task.resume()
     }
     
-    func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: String? = nil, _ handler: (response: AnyObject?, error: Error?) -> Void) {
+    func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: String? = nil, _ handler: (AnyObject?, Error?) -> Void) {
         let bodyData: Data? = body?.data(using: String.Encoding.utf8)
         let request: URLRequest = requestFor(path, method: .POST, headers: headers, params: params, body: bodyData)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else {
-                handler(response: nil, error: error)
+                handler(nil, error)
                 return
             }
 
             if let _ = error {
-                handler(response: nil, error: error)
+                handler(nil, error)
                 return
             }
 
@@ -107,7 +107,7 @@ internal final class APIClient {
                 ? String(data: data, encoding: String.Encoding.utf8)
                 : try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
             
-            handler(response: retVal, error: nil)
+            handler(retVal, nil)
         }
         
         task.resume()
