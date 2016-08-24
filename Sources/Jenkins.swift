@@ -2,27 +2,6 @@
  * Jenkins Swift Client
  */
 
-public enum JenkinsError: Error, CustomStringConvertible {
-    case InvalidJenkinsHost
-    case UnknownError
-    
-    init(error: APIError) {
-        switch error {
-        case .InvalidHost:
-            self = .InvalidJenkinsHost
-        default:
-            self = .UnknownError
-        }
-    }
-    
-    public var description: String {
-        switch self {
-        case .InvalidJenkinsHost:   return "Couldn't connect to Jenkins Host"
-        case .UnknownError:         return "Unknown error"
-        }
-    }
-}
-
 public enum Transport: CustomStringConvertible {
     case HTTP
     case HTTPS

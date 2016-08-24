@@ -110,8 +110,8 @@ public extension Jenkins {
             return
         }
         
-        client?.get(path: url) { obj in
-            guard let json = obj as? JSON,
+        client?.get(path: url) { response, error in
+            guard let json = response as? JSON,
                 let jobsJSON = json["jobs"] as? [JSON] else {
                     handler([])
                     return
@@ -131,8 +131,8 @@ public extension Jenkins {
             return
         }
         
-        client?.get(path: url) { obj in
-            guard let json = obj as? JSON else {
+        client?.get(path: url) { response, error in
+            guard let json = response as? JSON else {
                 handler(job: nil)
                 return
             }
@@ -149,37 +149,37 @@ public extension Jenkins {
 // MARK: Enabling and Disabling Jobs
 
 public extension Jenkins {
-    func enable(_ job: Job, _ handler: (error: Bool) -> Void) {
+    func enable(_ job: Job, _ handler: (error: Error?) -> Void) {
         enable(job: job.name, handler)
     }
     
-    func enable(job named: String, _ handler: (error: Bool) -> Void) {
+    func enable(job named: String, _ handler: (error: Error?) -> Void) {
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(named)
             .appendingPathComponent("enable") else {
-                handler(error: true)
+                handler(error: JenkinsError.InvalidJenkinsURL)
                 return
         }
         
-        client?.post(path: url) { response in
-            handler(error: (response == nil))
+        client?.post(path: url) { response, error in
+            handler(error: error)
         }
     }
     
-    func disable(_ job: Job, _ handler: (error: Bool) -> Void) {
+    func disable(_ job: Job, _ handler: (error: Error?) -> Void) {
         disable(job: job.name, handler)
     }
     
-    func disable(job named: String, _ handler: (error: Bool) -> Void) {
+    func disable(job named: String, _ handler: (error: Error?) -> Void) {
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(named)
             .appendingPathComponent("disable") else {
-                handler(error: true)
+                handler(error: JenkinsError.InvalidJenkinsURL)
                 return
         }
         
-        client?.post(path: url) { response in
-            handler(error: (response == nil))
+        client?.post(path: url) { response, error in
+            handler(error: error)
         }
     }
 }
@@ -187,21 +187,21 @@ public extension Jenkins {
 // MARK: Build Jobs
 
 public extension Jenkins {
-    func build(_ name: String, parameters: [String : String], _ handler: (error: Bool) -> Void) {
+    func build(_ name: String, parameters: [String : String] = [:], _ handler: (error: Error?) -> Void) {
         let buildPath = (parameters.count > 0) ? "buildWithParameters" : "build"
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent(buildPath) else {
-                handler(error: true)
+                handler(error: JenkinsError.InvalidJenkinsURL)
                 return
         }
         
-        client?.post(path: url, params: parameters) { response in
-            handler(error: (response == nil))
+        client?.post(path: url, params: parameters) { response, error in
+            handler(error: error)
         }
     }
     
-    func build(_ job: Job, parameters: [String : String], _ handler: (error: Bool) -> Void) {
+    func build(_ job: Job, parameters: [String : String] = [:], _ handler: (error: Error?) -> Void) {
         build(job.name, parameters: parameters, handler)
     }
 }

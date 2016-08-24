@@ -40,8 +40,14 @@ internal final class APIClient {
     private(set) var transport: String
     private(set) var baseURL: URL
     
-    private var basicAuth: (String, String) {
-        return (self.user, self.token)
+    private var encodedAuthorizationHeader: String {
+        if let encoded = "\(user):\(token)"
+            .data(using: String.Encoding.utf8)?
+            .base64EncodedString() {
+            return "Basic \(encoded)"
+        }
+        
+        return ""
     }
     
     init(host: String, port: Int, path: String = "", user: String, token: String, transport: String = "http") throws {
@@ -60,16 +66,16 @@ internal final class APIClient {
         self.baseURL = url
     }
     
-    func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], _ handler: (AnyObject?) -> (Void)) {
+    func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], _ handler: (response: AnyObject?, error: Error?) -> Void) {
         let request: URLRequest = requestFor(path, method: .GET, headers: headers, params: params, body: nil)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else {
-                handler(nil)
+                handler(response: nil, error: error)
                 return
             }
             
             if let _ = error {
-                handler(nil)
+                handler(response: nil, error: error)
                 return
             }
             
@@ -77,23 +83,23 @@ internal final class APIClient {
                 ? String(data: data, encoding: String.Encoding.utf8)
                 : try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
             
-            handler(retVal)
+            handler(response: retVal, error: nil)
         }
         
         task.resume()
     }
     
-    func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: String? = nil, _ handler: (AnyObject?) -> Void) {
+    func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: String? = nil, _ handler: (response: AnyObject?, error: Error?) -> Void) {
         let bodyData: Data? = body?.data(using: String.Encoding.utf8)
         let request: URLRequest = requestFor(path, method: .POST, headers: headers, params: params, body: bodyData)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data else {
-                handler(nil)
+                handler(response: nil, error: error)
                 return
             }
 
             if let _ = error {
-                handler(nil)
+                handler(response: nil, error: error)
                 return
             }
 
@@ -101,7 +107,7 @@ internal final class APIClient {
                 ? String(data: data, encoding: String.Encoding.utf8)
                 : try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
             
-            handler(retVal)
+            handler(response: retVal, error: nil)
         }
         
         task.resume()
@@ -110,7 +116,7 @@ internal final class APIClient {
     private func requestFor(_ url: URL, method: APIMethod, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: Data?) -> URLRequest {
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: ApiClientTimeout)
         request.httpMethod = method.description
-        
+        request.addValue(encodedAuthorizationHeader, forHTTPHeaderField: "Authorization")
         _ = headers.map { request.addValue($0.value, forHTTPHeaderField: $0.key) }
         
         if let body = body {
