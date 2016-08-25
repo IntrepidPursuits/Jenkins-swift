@@ -49,15 +49,23 @@ public extension Jenkins {
     }
     
     func create(_ name: String, configuration: JobConfiguration, _ handler: (error: Error?) -> Void) {
-        guard let url = URL(string: jobURL)?
-            .appendingPathComponent(name)
-            .appendingPathComponent("createItem") else {
+        guard let encodedName = name.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) else {
+            handler(error: JenkinsError.InvalidJenkinsURL)
+            return
+        }
+        
+        let queryItem = URLQueryItem(name: "name", value: encodedName)
+        
+        guard var url = URLComponents(string: jenkinsURL) else {
                 handler(error: JenkinsError.InvalidJenkinsURL)
                 return
         }
         
-        client?.post(path: url, body: configuration) { response, error in
-            
+        url.path = "/createItem"
+        url.queryItems = [queryItem]
+        
+        client?.post(path: url.url!, headers: ["Content-Type" : "text/xml"], body: configuration) { response, error in
+            handler(error: error)
         }
     }
     
