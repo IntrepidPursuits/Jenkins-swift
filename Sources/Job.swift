@@ -30,8 +30,12 @@ public final class Job {
         guard let url = json["url"] as? String,
             let name = json["name"] as? String else {
                 self.name = ""
+                self.url = ""
                 return
         }
+        
+        self.name = name
+        self.url = url
         
         if let builds = json["builds"] as? [JSON] {
             for buildDict in builds {
@@ -40,11 +44,25 @@ public final class Job {
             }
         }
         
-        self.buildable = json["buildable"] as? Bool
-        self.color = json["color"] as? String
-        self.concurrentBuild = json["concurrentBuild"] as? Bool
-        self.jobDescription = json["description"] as? String
-        self.displayName = json["displayName"] as? String
+        if let buildable = json["buildable"] as? Bool {
+            self.buildable = buildable
+        }
+        
+        if let color = json["color"] as? String {
+            self.color = color
+        }
+        
+        if let concurrentBuild = json["concurrentBuild"] as? Bool {
+            self.concurrentBuild = concurrentBuild
+        }
+        
+        if let jobDescription = json["description"] as? String {
+            self.jobDescription = jobDescription
+        }
+        
+        if let displayName = json["displayName"] as? String {
+            self.displayName = displayName
+        }
         
         if let firstBuild = json["firstBuild"] as? JSON {
             self.firstBuild = Build(json: firstBuild)
@@ -85,13 +103,14 @@ public final class Job {
             self.lastUnsuccessfulBuild = Build(json: lastUnsuccessfulBuild)
         }
         
-        self.name = name
-        self.nextBuildNumber = json["nextBuildNumber"] as? Int
+        if let nextBuildNumber = json["nextBuildNumber"] as? Int {
+            self.nextBuildNumber = nextBuildNumber
+        }
         
         if let queueItem = json["queueItem"] as? JSON {
             self.queueItem = JobQueueItem(json: queueItem)
         }
-        self.url = url
+        
     }
 }
 
@@ -105,7 +124,9 @@ extension Job : CustomStringConvertible {
 
 public extension Jenkins {
     func fetchJobs(_ handler: ([Job]) -> Void) {
-        guard let url = URL(string: jenkinsURL) else {
+        guard let url = URL(string: jenkinsURL)?
+            .appendingPathComponent("api")
+            .appendingPathComponent("json") else {
             handler([])
             return
         }
@@ -126,7 +147,10 @@ public extension Jenkins {
     }
     
     func fetch(_ job: String, _ handler: (job: Job?) -> Void) {
-        guard let url = URL(string: jobURL)?.appendingPathComponent(job) else {
+        guard let url = URL(string: jobURL)?
+            .appendingPathComponent(job)
+            .appendingPathComponent("api")
+            .appendingPathComponent("json") else {
             handler(job: nil)
             return
         }

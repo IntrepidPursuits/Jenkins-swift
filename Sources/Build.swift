@@ -49,25 +49,59 @@ public struct Build {
     private(set) var url: String = ""
     
     init(json: JSON) {
-        guard let identifier = Int(json["id"] as! String) else {
-            self.identifier = 0
+        guard let buildNum = json["number"] as? Int else {
+            self.buildNumber = 0
             return
         }
         
-        self.identifier = identifier
-        self.buildNumber = json["number"] as? Int ?? 0
-        self.buildDescription = json["description"] as? String ?? ""
-        self.displayName = json["displayName"] as? String ?? ""
-        self.duration = json["duration"] as? Int ?? 0
-        self.estimatedDuration = json["estimatedDuration"] as? Int ?? 0
-        self.executor = json["executor"] as? String ?? ""
-        self.fullDisplayName = json["fullDisplayName"] as? String ?? ""
-        self.keepLog = json["keepLog"] as? Bool ?? false
-        self.queueIdentifier = json["queueId"] as? Int ?? 0
+        self.buildNumber = buildNum
         
-        let buildResult = json["result"] as? String ?? ""
-        self.result = BuildResult(type: buildResult)
-        self.timestamp = json["timestamp"] as? Int ?? 0
-        self.url = json["url"] as? String ?? ""
+        if let id = json["id"] as? String {
+            self.identifier = Int(id) ?? 0
+        }
+        
+        if let description = json["description"] as? String {
+            self.buildDescription = description
+        }
+        
+        if let displayName = json["displayName"] as? String {
+            self.displayName = displayName
+        }
+        
+        if let duration = json["duration"] as? Int {
+            self.duration = duration
+        }
+        
+        if let estimatedDuration = json["estimatedDuration"] as? Int {
+            self.estimatedDuration = estimatedDuration
+        }
+        
+        if let executor = json["executor"] as? String {
+            self.executor = executor
+        }
+        
+        if let fullDisplayName = json["fullDisplayName"] as? String {
+            self.fullDisplayName = fullDisplayName
+        }
+        
+        if let keepLog = json["keepLog"] as? Bool {
+            self.keepLog = keepLog
+        }
+        
+        if let queueID = json["queueId"] as? Int {
+            self.queueIdentifier = queueID
+        }
+        
+        if let result = json["result"] as? String {
+            self.result = BuildResult(type: result)
+        }
+        
+        if let timestamp = json["timestamp"] as? Int {
+            self.timestamp = timestamp
+        }
+        
+        if let url = json["url"] as? String {
+            self.url = url
+        }
     }
 }
