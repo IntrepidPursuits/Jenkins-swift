@@ -2,24 +2,48 @@
  * Jenkins Swift Client
  */
 
-public struct Jenkins {
-    let host: String
-    let port: Int
-    let token: String
+public enum Transport: CustomStringConvertible {
+    case HTTP
+    case HTTPS
+    
+    public var description: String {
+        switch self {
+        case .HTTP:     return "http"
+        case .HTTPS:    return "https"
+        }
+    }
+}
 
-    public init(host: String, port: Int, token: String) {
-        self.host = host
-        self.port = port
-        self.token = token
+public final class Jenkins {
+    private(set) var jobs: [Job] = []
+    private(set) var client: APIClient?
+    
+    var jenkinsURL: String {
+        guard let url = self.client?.baseURL else {
+            return ""
+        }
+        return url.absoluteString
     }
     
-    public func getToken() -> String {
-        return token
+    var jobURL: String {
+        guard let url = self.client?.baseURL,
+            let path = self.client?.path else {
+                return ""
+        }
+        return url.appendingPathComponent(path).absoluteString
+    }
+
+    public init(host: String, port: Int, user: String, token: String, path: String, transport: Transport = .HTTP) throws {
+        do {
+            self.client = try APIClient(host: host, port: port, path: path, user: user, token: token)
+        } catch let error as APIError {
+            throw JenkinsError(error: error)
+        }
     }
 }
 
 extension Jenkins : CustomStringConvertible {
     public var description: String {
-        return "Jenkins @ \(host):\(port)"
+        return "Jenkins \(client!.user) @ \(client!.host):\(client!.port)"
     }
 }
