@@ -187,11 +187,10 @@ public extension Jenkins {
 // MARK: Build Jobs
 
 public extension Jenkins {
-    func build(_ name: String, parameters: [String : String] = [:], _ handler: (error: Error?) -> Void) {
-        let buildPath = (parameters.count > 0) ? "buildWithParameters" : "build"
+    func build(_ name: String, parameters: [String : String], _ handler: (error: Error?) -> Void) {
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
-            .appendingPathComponent(buildPath) else {
+            .appendingPathComponent("buildWithParameters") else {
                 handler(error: JenkinsError.InvalidJenkinsURL)
                 return
         }
@@ -201,7 +200,30 @@ public extension Jenkins {
         }
     }
     
-    func build(_ job: Job, parameters: [String : String] = [:], _ handler: (error: Error?) -> Void) {
+    func build(_ job: Job, parameters: [String : String], _ handler: (error: Error?) -> Void) {
         build(job.name, parameters: parameters, handler)
+    }
+    
+    func build(_ name: String, _ handler: (error: Error?) -> Void) {
+        guard let url = URL(string: jobURL)?
+            .appendingPathComponent(name)
+            .appendingPathComponent("build") else {
+                handler(error: JenkinsError.InvalidJenkinsURL)
+                return
+        }
+        
+        client?.post(path: url) { response, error in
+            if let statusCode = response?.statusCode {
+                if statusCode == 400 {
+                    handler(error: JenkinsError.JobRequiresParameters)
+                }
+            }
+            
+            handler(error: error)
+        }
+    }
+    
+    func build(job: Job, _ handler: (error: Error?) -> Void) {
+        build(job.name, handler)
     }
 }

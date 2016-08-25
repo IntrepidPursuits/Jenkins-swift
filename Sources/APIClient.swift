@@ -31,7 +31,8 @@ internal enum APIMethod: String, CustomStringConvertible {
     }
 }
 
-internal final class APIClient {
+@objc
+internal final class APIClient: NSObject {
     private(set) var host: String
     private(set) var path: String
     private(set) var port: Int
@@ -68,22 +69,9 @@ internal final class APIClient {
     
     func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], _ handler: (AnyObject?, Error?) -> Void) {
         let request: URLRequest = requestFor(path, method: .GET, headers: headers, params: params, body: nil)
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data else {
-                handler(nil, error)
-                return
-            }
-            
-            if let _ = error {
-                handler(nil, error)
-                return
-            }
-            
-            let retVal: AnyObject? = (rawResponse == true)
-                ? String(data: data, encoding: String.Encoding.utf8)
-                : try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
-            
-            handler(retVal, nil)
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
+        let task = session.dataTask(with: request) { data, response, error in
+            self.decodeResponse(response, rawOutput: rawResponse, data: data, error: error, handler: handler)
         }
         
         task.resume()
@@ -92,31 +80,22 @@ internal final class APIClient {
     func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: String? = nil, _ handler: (AnyObject?, Error?) -> Void) {
         let bodyData: Data? = body?.data(using: String.Encoding.utf8)
         let request: URLRequest = requestFor(path, method: .POST, headers: headers, params: params, body: bodyData)
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data else {
-                handler(nil, error)
-                return
-            }
-
-            if let _ = error {
-                handler(nil, error)
-                return
-            }
-
-            let retVal: AnyObject? = (rawResponse == true)
-                ? String(data: data, encoding: String.Encoding.utf8)
-                : try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
-            
-            handler(retVal, nil)
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
+        
+        let task = session.dataTask(with: request) { data, response, error in
+            self.decodeResponse(response, rawOutput: rawResponse, data: data, error: error, handler: handler)
         }
         
         task.resume()
     }
     
+    // MARK: Private Helpers
+    
     private func requestFor(_ url: URL, method: APIMethod, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: Data?) -> URLRequest {
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: ApiClientTimeout)
         request.httpMethod = method.description
         request.addValue(encodedAuthorizationHeader, forHTTPHeaderField: "Authorization")
+        
         _ = headers.map { request.addValue($0.value, forHTTPHeaderField: $0.key) }
         
         if let body = body {
@@ -138,4 +117,36 @@ internal final class APIClient {
         return request
     }
     
+    private func decodeResponse(_ response: URLResponse?, rawOutput: Bool, data: Data?, error: Error?, handler: (AnyObject?, Error?) -> Void) {
+        guard let data = data else {
+            handler(nil, error)
+            return
+        }
+        
+        if let _ = error {
+            handler(nil, error)
+            return
+        }
+        
+        if let response = response as? HTTPURLResponse {
+            if response.statusCode >= 400 {
+                print(response)
+                let error = JenkinsError(httpStatusCode: response.statusCode)
+                handler(nil, error)
+            }
+        }
+        
+        let retVal: AnyObject? = (rawOutput == true)
+            ? String(data: data, encoding: String.Encoding.utf8)
+            : try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
+        
+        handler(retVal, nil)
+    }
+    
+}
+
+extension APIClient: URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: (URLRequest?) -> Void) {
+        completionHandler(nil)
+    }
 }
