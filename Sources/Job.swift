@@ -23,6 +23,7 @@ public final class Job {
     private(set) var lastUnsuccessfulBuild: Build?
     private(set) var name: String
     private(set) var nextBuildNumber: Int?
+    private(set) var parameters: [JobParameter]?
     private(set) var queueItem: JobQueueItem?
     private(set) var url: String?
     
@@ -36,6 +37,20 @@ public final class Job {
         
         self.name = name
         self.url = url
+        
+        
+        if let actions = json["actions"] as? [JSON] {
+            _ = actions.map {
+                guard let actionClass = $0["_class"] as? String else {
+                    return
+                }
+                
+                let action = Action(action: actionClass)
+                if action == .ParameterDefinitions, let parameters = $0["parameterDefinitions"] as? [JSON] {
+                    self.parameters = parameters.map { return JobParameter(json: $0) }
+                }
+            }
+        }
         
         if let builds = json["builds"] as? [JSON] {
             for buildDict in builds {
@@ -110,7 +125,6 @@ public final class Job {
         if let queueItem = json["queueItem"] as? JSON {
             self.queueItem = JobQueueItem(json: queueItem)
         }
-        
     }
 }
 
@@ -278,5 +292,19 @@ public enum JobColor: String {
     
     public var description: String {
         return self.rawValue
+    }
+}
+
+private enum Action: String {
+    case ParameterDefinitions
+    case Unknown
+    
+    init(action: String) {
+        switch action {
+        case "hudson.model.ParametersDefinitionProperty":
+            self = .ParameterDefinitions
+        default:
+            self = .Unknown
+        }
     }
 }

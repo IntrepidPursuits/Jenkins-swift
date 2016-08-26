@@ -8,31 +8,6 @@
 
 import Foundation
 
-public enum BuildResult {
-    case Success
-    case Failed
-    case Aborted
-    case Unknown
-    
-    private init(type: String?) {
-        guard let type = type else {
-            self = .Unknown
-            return
-        }
-        
-        switch type {
-        case "SUCCESS":
-            self = .Success
-        case "FAILURE":
-            self = .Failed
-        case "ABORTED":
-            self = .Aborted
-        default:
-            self = .Unknown
-        }
-    }
-}
-
 public struct Build {
     private(set) var identifier: Int = 0
     private(set) var buildNumber: Int = 0
@@ -102,6 +77,33 @@ public struct Build {
         
         if let url = json["url"] as? String {
             self.url = url
+        }
+    }
+}
+
+// MARK: Build Result
+
+public enum BuildResult {
+    case Success
+    case Failed
+    case Aborted
+    case Unknown
+    
+    private init(type: String?) {
+        guard let type = type else {
+            self = .Unknown
+            return
+        }
+        
+        switch type {
+        case "SUCCESS":
+            self = .Success
+        case "FAILURE":
+            self = .Failed
+        case "ABORTED":
+            self = .Aborted
+        default:
+            self = .Unknown
         }
     }
 }
