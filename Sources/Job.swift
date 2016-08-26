@@ -6,7 +6,7 @@ import Foundation
 public final class Job {
     private(set) var builds: [Build] = []
     private(set) var buildable: Bool?
-    private(set) var color: String?
+    private(set) var color: JobColor = .Unknown
     private(set) var concurrentBuild: Bool?
     private(set) var jobDescription: String?
     private(set) var displayName: String?
@@ -49,7 +49,7 @@ public final class Job {
         }
         
         if let color = json["color"] as? String {
-            self.color = color
+            self.color = JobColor(color: color)
         }
         
         if let concurrentBuild = json["concurrentBuild"] as? Bool {
@@ -120,7 +120,7 @@ extension Job : CustomStringConvertible {
     }
 }
 
-// MARK: Job
+// MARK: Fetch Jobs
 
 public extension Jenkins {
     func fetchJobs(_ handler: ([Job]) -> Void) {
@@ -249,5 +249,34 @@ public extension Jenkins {
     
     func build(job: Job, _ handler: (error: Error?) -> Void) {
         build(job.name, handler)
+    }
+}
+
+// MARK: Job Color
+
+public enum JobColor: String {
+    case Green
+    case Red
+    case DisabledGrey
+    case UnbuiltGrey
+    case Unknown
+    
+    init(color: String) {
+        switch color {
+        case "notbuilt":
+            self = .UnbuiltGrey
+        case "disabled":
+            self = .DisabledGrey
+        case "red":
+            self = .Red
+        case "green":
+            self = .Green
+        default:
+            self = .Unknown
+        }
+    }
+    
+    public var description: String {
+        return self.rawValue
     }
 }

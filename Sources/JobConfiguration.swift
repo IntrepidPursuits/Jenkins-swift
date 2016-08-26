@@ -44,15 +44,17 @@ public extension Jenkins {
 // MARK: Job Configuration crud operations
 
 public extension Jenkins {
+    private var createCopyPath: String { return "/createItem" }
+    
     func copy(_ job: Job, to: String, _ handler: (error: Error?) -> Void) {
         copy(job.name, to: to, handler)
     }
     
     func copy(_ name: String, to: String, _ handler: (error: Error?) -> Void) {
         guard let copyFromJob = name.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed),
-        let copyToJob = to.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)else {
-            handler(error: JenkinsError.InvalidJenkinsURL)
-            return
+            let copyToJob = to.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) else {
+                handler(error: JenkinsError.InvalidJenkinsURL)
+                return
         }
         
         guard var url = URLComponents(string: jenkinsURL) else {
@@ -60,7 +62,7 @@ public extension Jenkins {
             return
         }
         
-        url.path = "/createItem"
+        url.path = createCopyPath
         url.queryItems = [
             URLQueryItem(name: "name", value: copyToJob),
             URLQueryItem(name: "mode", value: "copy"),
@@ -70,7 +72,6 @@ public extension Jenkins {
         client?.post(path: url.url!) { response, error in
             handler(error: error)
         }
-
     }
     
     func create(_ job: Job, configuration: JobConfiguration, _ handler: (error: Error?) -> Void) {
@@ -90,7 +91,7 @@ public extension Jenkins {
                 return
         }
         
-        url.path = "/createItem"
+        url.path = createCopyPath
         url.queryItems = [queryItem]
         
         client?.post(path: url.url!, headers: ["Content-Type" : "text/xml"], body: configuration) { response, error in
