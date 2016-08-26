@@ -207,7 +207,7 @@ ___
 
 ## License
 
-Jenkins-Swift is free software and may be redistributed under the terms specified in the [LICENSE](https://github.com/IntrepidPursuits/Jenkins-Swift/blob/master/LICENSE) file.
+Jenkins-Swift is free software and may be redistributed under the terms specified in the [LICENSE](https://github.com/IntrepidPursuits/Jenkins-swift/blob/master/license.txt) file.
 
 ___
 
