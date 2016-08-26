@@ -6,7 +6,7 @@ import Foundation
 public final class Job {
     private(set) var builds: [Build] = []
     private(set) var buildable: Bool?
-    private(set) var color: String?
+    private(set) var color: JobColor = .Unknown
     private(set) var concurrentBuild: Bool?
     private(set) var jobDescription: String?
     private(set) var displayName: String?
@@ -23,6 +23,7 @@ public final class Job {
     private(set) var lastUnsuccessfulBuild: Build?
     private(set) var name: String
     private(set) var nextBuildNumber: Int?
+    private(set) var parameters: [JobParameter]?
     private(set) var queueItem: JobQueueItem?
     private(set) var url: String?
     
@@ -37,6 +38,20 @@ public final class Job {
         self.name = name
         self.url = url
         
+        
+        if let actions = json["actions"] as? [JSON] {
+            _ = actions.map {
+                guard let actionClass = $0["_class"] as? String else {
+                    return
+                }
+                
+                let action = Action(action: actionClass)
+                if action == .ParameterDefinitions, let parameters = $0["parameterDefinitions"] as? [JSON] {
+                    self.parameters = parameters.map { return JobParameter(json: $0) }
+                }
+            }
+        }
+        
         if let builds = json["builds"] as? [JSON] {
             for buildDict in builds {
                 let newBuild = Build(json: buildDict)
@@ -49,7 +64,7 @@ public final class Job {
         }
         
         if let color = json["color"] as? String {
-            self.color = color
+            self.color = JobColor(color: color)
         }
         
         if let concurrentBuild = json["concurrentBuild"] as? Bool {
@@ -110,7 +125,6 @@ public final class Job {
         if let queueItem = json["queueItem"] as? JSON {
             self.queueItem = JobQueueItem(json: queueItem)
         }
-        
     }
 }
 
@@ -120,7 +134,7 @@ extension Job : CustomStringConvertible {
     }
 }
 
-// MARK: Job
+// MARK: Fetch Jobs
 
 public extension Jenkins {
     func fetchJobs(_ handler: ([Job]) -> Void) {
@@ -249,5 +263,48 @@ public extension Jenkins {
     
     func build(job: Job, _ handler: (error: Error?) -> Void) {
         build(job.name, handler)
+    }
+}
+
+// MARK: Job Color
+
+public enum JobColor: String {
+    case Green
+    case Red
+    case DisabledGrey
+    case UnbuiltGrey
+    case Unknown
+    
+    init(color: String) {
+        switch color {
+        case "notbuilt":
+            self = .UnbuiltGrey
+        case "disabled":
+            self = .DisabledGrey
+        case "red":
+            self = .Red
+        case "green":
+            self = .Green
+        default:
+            self = .Unknown
+        }
+    }
+    
+    public var description: String {
+        return self.rawValue
+    }
+}
+
+private enum Action: String {
+    case ParameterDefinitions
+    case Unknown
+    
+    init(action: String) {
+        switch action {
+        case "hudson.model.ParametersDefinitionProperty":
+            self = .ParameterDefinitions
+        default:
+            self = .Unknown
+        }
     }
 }
