@@ -89,7 +89,7 @@ public enum BuildResult {
     case Aborted
     case Unknown
     
-    private init(type: String?) {
+    init(type: String?) {
         guard let type = type else {
             self = .Unknown
             return

@@ -67,7 +67,7 @@ internal final class APIClient: NSObject {
         self.baseURL = url
     }
     
-    func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], _ handler: (AnyObject?, Error?) -> Void) {
+    func get(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], _ handler: @escaping (AnyObject?, Error?) -> Void) {
         let request: URLRequest = requestFor(path, method: .GET, headers: headers, params: params, body: nil)
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
         let task = session.dataTask(with: request) { data, response, error in
@@ -77,7 +77,7 @@ internal final class APIClient: NSObject {
         task.resume()
     }
     
-    func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: String? = nil, _ handler: (AnyObject?, Error?) -> Void) {
+    func post(path: URL, rawResponse: Bool = false, headers: [String : String] = [:], params: [String : AnyObject] = [:], body: String? = nil, _ handler: @escaping (AnyObject?, Error?) -> Void) {
         let bodyData: Data? = body?.data(using: String.Encoding.utf8)
         let request: URLRequest = requestFor(path, method: .POST, headers: headers, params: params, body: bodyData)
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: nil)
@@ -106,7 +106,7 @@ internal final class APIClient: NSObject {
                 if let val = $0.value as? String {
                     return URLQueryItem(name: $0.key, value: val)
                 } else {
-                    return URLQueryItem(name: $0.key, value: String($0.value))
+                    return URLQueryItem(name: $0.key, value: String(describing: $0.value))
                 }
             }
             
@@ -117,7 +117,7 @@ internal final class APIClient: NSObject {
         return request
     }
     
-    private func decodeResponse(_ response: URLResponse?, rawOutput: Bool, data: Data?, error: Error?, handler: (AnyObject?, Error?) -> Void) {
+    private func decodeResponse(_ response: URLResponse?, rawOutput: Bool, data: Data?, error: Error?, handler: @escaping (AnyObject?, Error?) -> Void) {
         guard let data = data else {
             handler(nil, error)
             return
@@ -136,17 +136,18 @@ internal final class APIClient: NSObject {
             }
         }
         
-        let retVal: AnyObject? = (rawOutput == true)
-            ? String(data: data, encoding: String.Encoding.utf8)
-            : try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
-        
-        handler(retVal, nil)
+        if rawOutput {
+            handler(String(data: data, encoding: String.Encoding.utf8) as AnyObject?, nil)
+        } else {
+            let json = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments)
+            handler(json as AnyObject?, nil)
+        }
     }
     
 }
 
 extension APIClient: URLSessionTaskDelegate {
-    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: (URLRequest?) -> Void) {
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         completionHandler(nil)
     }
 }
