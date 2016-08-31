@@ -1,7 +1,7 @@
 # Jenkins-Swift
 ---
 
-![Swift](http://img.shields.io/badge/swift-v3.0--dev.07.25-brightgreen.svg)
+![Swift](http://img.shields.io/badge/swift-v3.0--dev.08.18-brightgreen.svg)
 [![Build Status](https://travis-ci.org/IntrepidPursuits/Jenkins-swift.svg?branch=master)](https://travis-ci.org/IntrepidPursuits/Jenkins-swift)
 
 Jenkins-Swift is a Jenkins CI client, written in Swift for MacOS. The client uses a development snapshot of Swift 3. The project will be updated to follow the latest Swift 3 snapshots as they're released.
@@ -207,7 +207,7 @@ ___
 
 ## License
 
-Jenkins-Swift is free software and may be redistributed under the terms specified in the [LICENSE](https://github.com/IntrepidPursuits/Jenkins-Swift/blob/master/LICENSE) file.
+Jenkins-Swift is free software and may be redistributed under the terms specified in the [LICENSE](https://github.com/IntrepidPursuits/Jenkins-swift/blob/master/license.txt) file.
 
 ___
 

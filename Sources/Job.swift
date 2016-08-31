@@ -137,7 +137,7 @@ extension Job : CustomStringConvertible {
 // MARK: Fetch Jobs
 
 public extension Jenkins {
-    func fetchJobs(_ handler: ([Job]) -> Void) {
+    func fetchJobs(_ handler: @escaping ([Job]) -> Void) {
         guard let url = URL(string: jenkinsURL)?
             .appendingPathComponent("api")
             .appendingPathComponent("json") else {
@@ -160,26 +160,26 @@ public extension Jenkins {
         }
     }
     
-    func fetch(_ job: String, _ handler: (job: Job?) -> Void) {
+    func fetch(_ job: String, _ handler: @escaping (_ job: Job?) -> Void) {
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(job)
             .appendingPathComponent("api")
             .appendingPathComponent("json") else {
-            handler(job: nil)
+            handler(nil)
             return
         }
         
         client?.get(path: url) { response, error in
             guard let json = response as? JSON else {
-                handler(job: nil)
+                handler(nil)
                 return
             }
             
-            handler(job: Job(json: json))
+            handler(Job(json: json))
         }
     }
     
-    func fetch(_ job: Job, _ handler: (job: Job?) -> Void) {
+    func fetch(_ job: Job, _ handler: @escaping (_ job: Job?) -> Void) {
         return fetch(job.name, handler)
     }
 }
@@ -187,37 +187,37 @@ public extension Jenkins {
 // MARK: Enabling and Disabling Jobs
 
 public extension Jenkins {
-    func enable(_ job: Job, _ handler: (error: Error?) -> Void) {
+    func enable(_ job: Job, _ handler: @escaping (_ error: Error?) -> Void) {
         enable(job: job.name, handler)
     }
     
-    func enable(job named: String, _ handler: (error: Error?) -> Void) {
+    func enable(job named: String, _ handler: @escaping (_ error: Error?) -> Void) {
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(named)
             .appendingPathComponent("enable") else {
-                handler(error: JenkinsError.InvalidJenkinsURL)
+                handler(JenkinsError.InvalidJenkinsURL)
                 return
         }
         
         client?.post(path: url) { response, error in
-            handler(error: error)
+            handler(error)
         }
     }
     
-    func disable(_ job: Job, _ handler: (error: Error?) -> Void) {
+    func disable(_ job: Job, _ handler: @escaping (_ error: Error?) -> Void) {
         disable(job: job.name, handler)
     }
     
-    func disable(job named: String, _ handler: (error: Error?) -> Void) {
+    func disable(job named: String, _ handler: @escaping (_ error: Error?) -> Void) {
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(named)
             .appendingPathComponent("disable") else {
-                handler(error: JenkinsError.InvalidJenkinsURL)
+                handler(JenkinsError.InvalidJenkinsURL)
                 return
         }
         
         client?.post(path: url) { response, error in
-            handler(error: error)
+            handler(error)
         }
     }
 }
@@ -225,43 +225,43 @@ public extension Jenkins {
 // MARK: Build Jobs
 
 public extension Jenkins {
-    func build(_ name: String, parameters: [String : String], _ handler: (error: Error?) -> Void) {
+    func build(_ name: String, parameters: [String : String], _ handler: @escaping (_ error: Error?) -> Void) {
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent("buildWithParameters") else {
-                handler(error: JenkinsError.InvalidJenkinsURL)
+                handler(JenkinsError.InvalidJenkinsURL)
                 return
         }
         
-        client?.post(path: url, params: parameters) { response, error in
-            handler(error: error)
+        client?.post(path: url, params: parameters as [String : AnyObject]) { response, error in
+            handler(error)
         }
     }
     
-    func build(_ job: Job, parameters: [String : String], _ handler: (error: Error?) -> Void) {
+    func build(_ job: Job, parameters: [String : String], _ handler: @escaping (_ error: Error?) -> Void) {
         build(job.name, parameters: parameters, handler)
     }
     
-    func build(_ name: String, _ handler: (error: Error?) -> Void) {
+    func build(_ name: String, _ handler: @escaping (_ error: Error?) -> Void) {
         guard let url = URL(string: jobURL)?
             .appendingPathComponent(name)
             .appendingPathComponent("build") else {
-                handler(error: JenkinsError.InvalidJenkinsURL)
+                handler(JenkinsError.InvalidJenkinsURL)
                 return
         }
         
         client?.post(path: url) { response, error in
             if let statusCode = response?.statusCode {
                 if statusCode == 400 {
-                    handler(error: JenkinsError.JobRequiresParameters)
+                    handler(JenkinsError.JobRequiresParameters)
                 }
             }
             
-            handler(error: error)
+            handler(error)
         }
     }
     
-    func build(job: Job, _ handler: (error: Error?) -> Void) {
+    func build(job: Job, _ handler: @escaping (_ error: Error?) -> Void) {
         build(job.name, handler)
     }
 }
