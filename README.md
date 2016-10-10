@@ -1,6 +1,6 @@
 # Jenkins-Swift
 ---
-
+![Latest](http://img.shields.io/badge/Latest-0.0.3-brightgreen.svg)
 ![Swift](http://img.shields.io/badge/swift-3.0-brightgreen.svg)
 [![Build Status](https://travis-ci.org/IntrepidPursuits/Jenkins-swift.svg?branch=master)](https://travis-ci.org/IntrepidPursuits/Jenkins-swift)
 
@@ -23,7 +23,7 @@ For example if your jobs live at `http://jenkins.myHost.com:8080/jobs/`
 
 You can initialize the jenkins client like so:
 
-    jenkins = try! Jenkins(host: "jenkins.myHost.com",
+    jenkins = try Jenkins(host: "jenkins.myHost.com",
                            port: 8080,
                            user: "MyUsername",
                           token: "MyAPIToken",
