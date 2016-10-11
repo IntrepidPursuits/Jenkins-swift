@@ -98,8 +98,11 @@ internal final class APIClient: NSObject {
         
         _ = headers.map { request.addValue($0.value, forHTTPHeaderField: $0.key) }
         
+        if method == .POST {
+            request.addValue("Content-Type: application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        }
+        
         if let body = body {
-            request.addValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
             request.httpBody = body
         } else {
             var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
