@@ -99,7 +99,7 @@ internal final class APIClient: NSObject {
         _ = headers.map { request.addValue($0.value, forHTTPHeaderField: $0.key) }
         
         if method == .POST {
-            request.addValue("Content-Type: application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         }
         
         if let body = body {
@@ -115,7 +115,7 @@ internal final class APIClient: NSObject {
             }
             
             components?.queryItems = queryItems
-            request.httpBody = components?.percentEncodedQuery?.data(using: String.Encoding.utf8)
+            request.url = components?.url
         }
         
         return request
