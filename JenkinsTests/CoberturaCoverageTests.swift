@@ -14,7 +14,7 @@ class CoberturaCoverageTests: XCTestCase {
     
     func testCoberturaCodeCoverageDepth2() {
         
-        guard let path = Bundle(for: type(of: self)).path(forResource: "CoverageReportDepth2", ofType: "json") else {
+        guard let path = Bundle(for: type(of: self)).path(forResource: "CoberturaCoverageReportDepth2", ofType: "json") else {
             return XCTFail("Missing Coverage Report JSON")
         }
         
@@ -37,12 +37,12 @@ class CoberturaCoverageTests: XCTestCase {
         XCTAssert(c.coverageElements.count == validCovElements, "Report has \(c.coverageElements.count) coverage elements but should have \(validCovElements)")
         
         let validLineRatio = 0.2
-        let actualLineRatio = c.ratio(of: .Lines)
-        XCTAssertEqualWithAccuracy(actualLineRatio, validLineRatio, accuracy: 0.05, "Ratio is \(actualLineRatio) but should be \(validLineRatio)")
+        let actualLineRatio = c.ratio(of: CoberturaCodeCoverageElementType.Lines)
+        XCTAssertEqualWithAccuracy(actualLineRatio, validLineRatio, accuracy: 0.05)
     }
     
     func testCoberturaCodeCoverageDepth3() {
-        guard let path = Bundle(for: type(of: self)).path(forResource: "CoverageReportDepth3", ofType: "json") else {
+        guard let path = Bundle(for: type(of: self)).path(forResource: "CoberturaCoverageReportDepth3", ofType: "json") else {
             return XCTFail("Missing Coverage Report JSON")
         }
         
@@ -65,8 +65,8 @@ class CoberturaCoverageTests: XCTestCase {
         XCTAssert(c.coverageElements.count == validCovElements, "Report has \(c.coverageElements.count) coverage elements but should have \(validCovElements)")
         
         let validLineRatio = 0.2
-        let actualLineRatio = c.ratio(of: .Lines)
-        XCTAssertEqualWithAccuracy(actualLineRatio, validLineRatio, accuracy: 0.05, "Ratio is \(actualLineRatio) but should be \(validLineRatio)")
+        let actualLineRatio = c.ratio(of: CoberturaCodeCoverageElementType.Lines)
+        XCTAssertEqualWithAccuracy(actualLineRatio, validLineRatio, accuracy: 0.05)
     }
     
 }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum CoberturaCodeCoverageElementType: String {
+public enum CoberturaCodeCoverageElementType: String, CoverageElementType {
     case Classes        = "Classes"
     case Conditionals   = "Conditionals"
     case Files          = "Files"
@@ -28,24 +28,13 @@ public enum CoberturaCodeCoverageElementType: String {
     }
 }
 
-public struct CoberturaCodeCoverageElement {
-    private(set) var elementType: CoberturaCodeCoverageElementType = .Unknown
-    private(set) var covered: Int = 0
-    private(set) var total: Int = 0
-    
-    init(json: JSON) {
-        let coverageElementName: String = json["name"] as? String ?? ""
-        elementType = CoberturaCodeCoverageElementType(coverageElementName)
-        covered = json["numerator"] as? Int ?? 0
-        total = json["denominator"] as? Int ?? 0
-    }
-    
-    func ratio() -> Double {
-        return Double(covered) / Double(total)
-    }
+public struct CoberturaCodeCoverageElement: CoverageElement {
+    public var elementType: CoverageElementType = CoberturaCodeCoverageElementType.Unknown
+    public var covered: Int = 0
+    public var total: Int = 0
 }
 
-public struct CoberturaCodeCoverageReport {
+public struct CoberturaCodeCoverageReport: CoverageReport {
     private(set) var name: String
     private(set) var childReports: [CoberturaCodeCoverageReport]
     private(set) var coverageElements: [CoberturaCodeCoverageElement]
@@ -66,11 +55,22 @@ public struct CoberturaCodeCoverageReport {
         
         // for each element, init element
         let elementJSON: [JSON] = json["elements"] as? [JSON] ?? []
-        coverageElements = elementJSON.map({ CoberturaCodeCoverageElement(json: $0) })
+        coverageElements = elementJSON.map({ json in
+            let coverageElementName: String = json["name"] as? String ?? ""
+            let elementType = CoberturaCodeCoverageElementType(coverageElementName)
+            let covered = json["numerator"] as? Int ?? 0
+            let total = json["denominator"] as? Int ?? 0
+            return CoberturaCodeCoverageElement(elementType: elementType, covered: covered, total: total)
+        })
     }
     
-    func ratio(of element: CoberturaCodeCoverageElementType) -> Double {
-        return coverageElements.filter({$0.elementType == element}).first?.ratio() ?? 0
+    public func ratio(of element: CoverageElementType) -> Double {
+        if let e = element as? CoberturaCodeCoverageElementType {
+            return coverageElements.filter({
+                return ($0.elementType as? CoberturaCodeCoverageElementType) == e
+            }).first?.ratio() ?? 0
+        }
+        return 0
     }
 }
 
@@ -79,7 +79,7 @@ public struct CoberturaCodeCoverageReport {
  */
 
 extension Jenkins {
-    func coberturaCoverage(_ job: String,
+    public func coberturaCoverage(_ job: String,
                       build: Int = 0,
                       depth: Int = 2,
                       handler: @escaping (_ coverageReport: CoberturaCodeCoverageReport?) -> Void)
@@ -106,7 +106,7 @@ extension Jenkins {
         }
     }
     
-    func coberturaCoverage(_ job: Job,
+    public func coberturaCoverage(_ job: Job,
                       build: Int = 0,
                       depth: Int = 2,
                       handler: @escaping (_ coverageReport: CoberturaCodeCoverageReport?) -> Void)
