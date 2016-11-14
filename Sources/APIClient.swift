@@ -8,7 +8,6 @@
 
 import Foundation
 
-typealias JSON = [String: AnyObject]
 private let ApiClientTimeout: TimeInterval = 30
 
 internal enum APIError: Error {

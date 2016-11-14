@@ -1,6 +1,6 @@
 # Jenkins-Swift
 ---
-![Latest](http://img.shields.io/badge/Latest-0.0.3-brightgreen.svg)
+![Latest](http://img.shields.io/badge/Latest-0.0.6-brightgreen.svg)
 ![Swift](http://img.shields.io/badge/swift-3.0-brightgreen.svg)
 [![Build Status](https://travis-ci.org/IntrepidPursuits/Jenkins-swift.svg?branch=master)](https://travis-ci.org/IntrepidPursuits/Jenkins-swift)
 
@@ -197,6 +197,24 @@ Building a job requires using 1 of 2 methods, depending on whether or not your p
 
       print("Building Job With Paramaters: \(parameters)")
     }
+
+___
+#### Code Coverage
+
+This client supports retrieving code coverage reports from Jacoco and Cobertura plugins.
+
+    jenkins.coberturaCoverage(project, handler: { report in
+      if let report = report {
+        print(report.ratio(of: CoberturaCodeCoverageElementType.Lines))
+      }
+    })
+
+    jenkins.jacocoCoverage(project, handler: { report in
+      if let report = report {
+        report.ratio(of: JacocoCodeCoverageElementType.LineCoverage)
+      }
+    })
+
 
 ___
 
